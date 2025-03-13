@@ -1,0 +1,22 @@
+network.host: 0.0.0.0
+cluster.name: elk-cluster
+node.name: elk-node-1
+input {
+  file {
+    path => "/var/log/*.log"
+    type => "syslog"
+  }
+}
+filter {
+  grok {
+    match => { "message" => "%{SYSLOGTIMESTAMP:timestamp} %{HOSTNAME:hostname} %{DATA:process} %{GREEDYDATA:message}" }
+  }
+}
+output {
+  elasticsearch {
+    hosts => ["http://localhost:9200"]
+    index => "logs-%{+YYYY.MM.dd}"
+  }
+}
+server.host: "0.0.0.0"
+elasticsearch.hosts: ["http://localhost:9200"]
