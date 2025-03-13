@@ -1,0 +1,27 @@
+sudo apt install bacula-server bacula-client
+#job_making
+Job {
+  Name = "BackupJob"
+  Client = client-fd
+  FileSet = "FullSet"
+  Schedule = "WeeklyCycle"
+  Storage = File
+  Messages = Standard
+  Pool = Default
+  Priority = 10
+}
+Schedule {
+  Name = "WeeklyCycle"
+  Run = Full 1st sun at 23:00
+  Run = Incremental mon-sat at 23:00
+}
+FileSet {
+  Name = "FullSet"
+  Include {
+    File = /etc
+    File = /home
+  }
+}
+bconsole
+run job=BackupJob
+list jobs
