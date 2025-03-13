@@ -1,0 +1,78 @@
+ansible-galaxy install ansible_security.acl_manager
+ansible-galaxy collection install paloaltonetworks.panos
+- name: Block an IP address on Check Point firewall
+  hosts: checkpoint
+  connection: httpapi
+  tasks:
+    - include_role:
+        name: acl_manager
+        tasks_from: block_ip
+      vars:
+        source_ip: "192.168.1.100"
+        destination_ip: "10.0.0.1"
+        ansible_network_os: checkpoint
+- name: Create a firewall rule on Palo Alto firewall
+  hosts: paloalto
+  connection: local
+  tasks:
+    - name: Add a security rule
+      paloaltonetworks.panos.panos_security_rule:
+        provider:
+          ip_address: "192.168.1.1"
+          username: "admin"
+          password: "admin_password"
+        rule_name: "Block SSH"
+        source_zone: ["untrust"]
+        destination_zone: ["trust"]
+        source_ip: ["192.168.1.100"]
+        destination_ip: ["10.0.0.1"]
+        application: ["ssh"]
+        action: "deny"
+ansible-playbook <playbook.yml>
+ansible-galaxy collection install cisco.ios
+- name: Configure VLAN on Cisco switch
+  hosts: cisco_switches
+  gather_facts: no
+  connection: network_cli
+  tasks:
+    - name: Create VLAN 10
+      cisco.ios.ios_vlan:
+        vlan_id: 10
+        name: "Accounting"
+
+    - name: Assign interface to VLAN 10
+      cisco.ios.ios_l2_interface:
+        name: "GigabitEthernet0/1"
+        vlan_id: 10
+
+    - name: Save configuration
+      cisco.ios.ios_config:
+        save_when: always
+- name: Configure multiple VLANs on Cisco switch
+  hosts: cisco_switches
+  gather_facts: no
+  connection: network_cli
+  tasks:
+    - name: Create VLANs in bulk
+      cisco.ios.ios_vlan:
+        vlan_id:
+          - 20
+          - 30
+          - 40
+        name:
+          - "HR"
+          - "Finance"
+          - "Engineering"
+
+    - name: Assign interfaces to VLANs dynamically using a loop
+      cisco.ios.ios_l2_interface:
+        name: "{{ item.interface }}"
+        vlan_id: "{{ item.vlan }}"
+      loop:
+        - { interface: "GigabitEthernet0/2", vlan: 20 }
+        - { interface: "GigabitEthernet0/3", vlan: 30 }
+ansible-playbook <vlan_playbook.yml>
+ansible-vault encrypt secrets.yml
+
+
+
