@@ -1,0 +1,7 @@
+az ad conditional-access policy create \
+    --display-name "Enforce MFA for Remote Access" \
+    --conditions '{"signInRiskLevels":["medium", "high"], "locations":["remote"]}' \
+    --grant-controls '{"operator":"OR", "controls":["mfa"]}'
+curl -fsSL https://github.com/openziti/ziti-cli/releases/download/v0.27.2/install.sh | bash
+ziti edge enroll https://controller.example.com
+az sentinel workspace create --resource-group SecurityRG --workspace-name SentinelWorkspace
