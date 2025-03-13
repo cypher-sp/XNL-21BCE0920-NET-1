@@ -1,0 +1,74 @@
+#Zabbix-Network-Monitoring
+# On Ubuntu/Debian
+wget https://repo.zabbix.com/zabbix/6.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.0-4+ubuntu20.04_all.deb
+sudo dpkg -i zabbix-release_6.0-4+ubuntu20.04_all.deb
+sudo apt update
+sudo apt install zabbix-server-mysql zabbix-frontend-php zabbix-apache-conf zabbix-agent zabbix-snmptrapd
+mysql -u root -p
+CREATE DATABASE zabbix CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+CREATE USER 'zabbix'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON zabbix.* TO 'zabbix'@'localhost';
+FLUSH PRIVILEGES;
+exit;
+zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql -u zabbix -p zabbix
+sudo systemctl restart zabbix-server zabbix-agent apache2
+sudo systemctl enable zabbix-server zabbix-agent apache2
+sudo apt update
+sudo apt install build-essential apache2 php libapache2-mod-php snmp snmpd
+wget https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.x.tar.gz
+tar -zxvf nagios-4.x.tar.gz
+cd nagios-4.x
+./configure --with-command-group=nagcmd
+make all
+sudo make install
+sudo make install-init
+sudo make install-commandmode
+sudo make install-config
+sudo systemctl restart apache2
+sudo systemctl enable apache2
+sudo systemctl start nagios
+sudo apt install nagios-plugins nagios-snmp-plugins
+define command {
+  command_name check_snmp
+  command_line /usr/lib/nagios/plugins/check_snmp -H $HOSTADDRESS$ -C public -o $ARG1$
+}
+define command {
+  command_name check_snmp
+  command_line /usr/lib/nagios/plugins/check_snmp -H $HOSTADDRESS$ -C public -o $ARG1$
+}
+define service {
+  use generic-service
+  host_name snmp-host
+  service_description Check_Uptime
+  check_command check_snmp!1.3.6.1.2.1.1.3.0
+}
+sudo systemctl restart nagios
+wget https://github.com/prometheus/prometheus/releases/download/v2.x.x/prometheus-2.x.x.linux-amd64.tar.gz
+tar -zxvf prometheus-2.x.x.linux-amd64.tar.gz
+cd prometheus-2.x.x.linux-amd64
+./prometheus --config.file=prometheus.yml
+wget https://github.com/prometheus/snmp_exporter/releases/download/v0.x.x/snmp_exporter-0.x.x.linux-amd64.tar.gz
+tar -zxvf snmp_exporter-0.x.x.linux-amd64.tar.gz
+modules:
+  default:
+    walk:
+      - 1.3.6.1.2.1.1.3
+      - 1.3.6.1.2.1.2.2
+    version: 2
+    auth:
+      community: public
+./snmp_exporter
+scrape_configs:
+  - job_name: 'snmp'
+    static_configs:
+      - targets:
+        - '192.168.1.1:9116'
+    metrics_path: /snmp
+./prometheus --config.file=prometheus.yml
+
+
+
+
+
+
+
