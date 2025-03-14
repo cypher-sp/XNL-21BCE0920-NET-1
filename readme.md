@@ -67,6 +67,7 @@ Welcome to my repository showcasing the successful implementation of the **Netwo
 
 ---
 Results & Key Takeaways
+
 This project emphasized the importance of automation, redundancy, and security in building resilient network systems. Key achievements include:
 1. High availability and fault tolerance across all components.
 2. Real-time threat detection with automated mitigation strategies.
